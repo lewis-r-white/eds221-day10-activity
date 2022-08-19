@@ -1,0 +1,81 @@
+---
+title: "eds221 Day 10 activity"
+author: "Lewis White"
+date: "2022-08-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(here)
+library(tidyverse)
+library(janitor)
+library(beeswarm)
+library(ggExtra)
+```
+
+```{r}
+meteorological <- read_csv(here("data", "ntl20_v6.csv"))
+
+ice_cover <- read_csv(here("data", "ntl33_v7.csv"), na = c("-999", ""))
+```
+
+Create a visualization that compares ice duration across different lakes in the Madison Lake Area. Include both the actual ice duration values and some representation of summary statistics for each lake. Careful if you use a boxplot over a jitter or beeswarm - what values might be doubly represented? Can you find an argument that would help you remove those from the boxplot?
+
+```{r}
+ice_chart <- ggplot(data = ice_cover, aes(x = lakeid, y = ice_duration)) + 
+  geom_jitter(width = 0.25, aes(color = lakeid)) +
+  theme(legend.position = "top",
+        panel.background = element_rect(fill = "white"))
+
+ice_chart
+
+ggMarginal(ice_chart, type = "boxplot",groupColour = TRUE)
+```
+
+```{r}
+ggplot(data = ice_cover, aes(x = lakeid, y = ice_duration)) +
+  geom_jitter(width = 0.2, color = "gray50") +
+  geom_boxplot(width = 0.3, fill = NA, size = 1, outlier.color = NA)
+```
+
+
+Find the mean ice cover duration in Madison Lake Area by year (i.e., you’ll only be grouping by the year variable here). Understanding check: what are you finding the mean of here? Why are there multiple observations for each year?)
+
+```{r}
+ice_means <- ice_cover |> 
+  group_by(year4) |> 
+  summarise(mean_duration = mean(ice_duration, na.rm = TRUE))
+
+# mean across the 3 lakes
+```
+
+Create an exploratory visualization of mean ice cover duration by year for the Madison Lake Area. Add a sentence or two below this exploratory graph describing the overall trend(s) you observe.
+
+```{r}
+ggplot(data = ice_means, aes(x = year4, y = mean_duration)) + 
+  geom_point()
+#trending down
+```
+
+Find the mean air temperature (using the daily average air temperature - adjusted) in Madison Lake Area by year using only observations from winter months (December, January, February)
+
+```{r}
+winter <- meteorological %>%
+  filter(month %in% c(1, 2, 12)) %>%
+  group_by(year4) %>%
+  summarise(mean_temp = mean(ave_air_temp_adjusted))
+```
+
+Create an exploratory visualization of mean winter temperatures for the Madison Lake Area. Add a sentence or two below this exploratory graph describing the overall trend(s) you observe.
+
+```{r}
+ggplot(winter, aes(x = year4, y = mean_temp)) + 
+  geom_point()
+
+```
+
+
